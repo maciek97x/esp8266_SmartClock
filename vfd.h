@@ -1,5 +1,8 @@
 #pragma once
 #include "Arduino.h"
+#include <time.h>
+
+#include "vfd_custom_font.h"
 
 class VFD {
 public:
@@ -10,6 +13,8 @@ public:
     void writeStr(uint8_t* str);
     void setCustomChar(uint8_t address, uint8_t* custom_char);
     void setDigits(uint8_t digits);
+    void displayTime(uint8_t hours, uint8_t minutes, uint8_t seconds);
+    long displayDateAndTime(time_t epoch_time);
 
 private:
     uint8_t _din;

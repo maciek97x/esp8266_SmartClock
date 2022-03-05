@@ -1,101 +1,43 @@
 #include "Arduino.h"
+#include <NTPClient.h>
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
 
+#include "config.h"
 #include "vfd.h"
-
-uint8_t din   = 12; // DA
-uint8_t clk   = 13; // CK
-uint8_t cs    = 0; // CS
-uint8_t reset = 2; // RS
-
-uint8_t mychars[5*8] = {
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    
-    0b1010101,
-    0b0101010,
-    0b1010101,
-    0b0101010,
-    0b1010101
-    };
 
 VFD display;
 
-void setup() {
-    display = VFD(din, clk, cs, reset);
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
+void setup() {
+    pinMode(BUILTIN_LED, OUTPUT);
+
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+        digitalWrite(BUILTIN_LED, LOW);
+        delay(100);
+        digitalWrite(BUILTIN_LED, HIGH);
+        delay(100);
+    }
+
+    timeClient.begin();
+
+    display = VFD(VFD_DIN, VFD_CLK, VFD_CS, VFD_RST);
     display.setBrightness(0xFF);
 
-    for (uint8_t i = 0; i < 8; ++i) {
-        display.setCustomChar(i, &mychars[5*i]);
-    }
     Serial.begin(9600);
 }
 
-
-
-int16_t pe = 1;
-int16_t dpe = 1;
-
 void loop()
 {
-    uint8_t print_str[8] = {0, 1, 2, 3, 4, 5, 6, 7};
-    for (uint8_t i = 0; i < 5*8; ++i) {
-        mychars[i] <<= 1;
-        if ((rand() %  128) < pe) {
-        mychars[i] |= 1;
-        }
+    timeClient.update();
+    Serial.printf("%d:%d:%d\n", timeClient.getHours(), timeClient.getMinutes(), timeClient.getSeconds());
+    if (0) {//(timeClient.getSeconds() >> 2) & 0x1) {
+        display.displayTime(timeClient.getHours(), timeClient.getMinutes(), timeClient.getSeconds());
+    } else {
+        Serial.println(display.displayDateAndTime(timeClient.getEpochTime()));
     }
-    for (uint8_t i = 0; i < 8; ++i) {
-        display.setCustomChar(i, &mychars[5*i]);
-    }
-
-    if (pe <= 1) {
-        dpe = 1;
-    }
-    if (pe >= 128) {
-        dpe = -1;
-    }
-    pe += dpe;
-    
-    display.writeStr(print_str);
     delay(100);
 }
