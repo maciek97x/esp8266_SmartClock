@@ -67,7 +67,7 @@ void loop()
     if ((timeClient.getSeconds() >> 2) & 0x1) {
         display.displayTime(timeClient.getHours(), timeClient.getMinutes(), timeClient.getSeconds());
     } else {
-        Serial.println(display.displayDateAndTime(timeClient.getEpochTime()));
+        display.displayDateAndTime(timeClient.getEpochTime());
     }
     delay(100);
 }

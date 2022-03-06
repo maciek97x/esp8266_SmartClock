@@ -77,7 +77,7 @@ void VFD::displayTime(uint8_t hours, uint8_t minutes, uint8_t seconds) {
     writeStr(print_str);
 }
 
-long VFD::displayDateAndTime(time_t epoch_time) {
+void VFD::displayDateAndTime(time_t epoch_time) {
     uint8_t i;
     uint8_t current_char[5];
     struct tm *datetime;
@@ -141,8 +141,6 @@ long VFD::displayDateAndTime(time_t epoch_time) {
     setCustomChar(7, current_char);
 
     writeStr(print_str);
-
-    return year*10000 + month*100 + day;
 }
 
 void VFD::writeData(uint8_t data) {
