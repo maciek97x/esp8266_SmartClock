@@ -86,7 +86,7 @@ long VFD::displayDateAndTime(time_t epoch_time) {
     uint8_t hours = datetime->tm_hour;
     uint8_t minutes = datetime->tm_min;
     uint8_t seconds = datetime->tm_sec;
-    uint8_t weekday = datetime->tm_wday;
+    uint8_t weekday = (datetime->tm_wday + 6) % 7;
     uint8_t day = datetime->tm_mday;
     uint8_t month = datetime->tm_mon + 1;
     uint16_t year = datetime->tm_year + 1900;
@@ -94,14 +94,14 @@ long VFD::displayDateAndTime(time_t epoch_time) {
     uint8_t print_str[] = {0, 1, 2, 3, 4, 5, 6, 7};
 
     memcpy(current_char, CUSTOM_FONT::getDigit((hours / 10) % 10, CUSTOM_FONT::FONT_TYPE::SMALL), sizeof(uint8_t)*5);
-    if (weekday <= 5) {
-        current_char[weekday - 1] |= 0x1;
+    if (weekday < 5) {
+        current_char[weekday] |= 0x1;
     }
     setCustomChar(0, current_char);
     
     memcpy(current_char, CUSTOM_FONT::getDigit(hours % 10, CUSTOM_FONT::FONT_TYPE::SMALL), sizeof(uint8_t)*5);
-    if (weekday > 5) {
-        current_char[weekday - 6] |= 0x1;
+    if (weekday >= 5) {
+        current_char[weekday - 5] |= 0x1;
     }
     setCustomChar(1, current_char);
 
