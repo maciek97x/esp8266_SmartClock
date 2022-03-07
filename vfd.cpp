@@ -42,6 +42,16 @@ void VFD::writeStr(uint8_t* str) {
     show();
 }
 
+void VFD::writeStr(const char* str) {
+    digitalWrite(_cs, LOW);
+    writeData(0x20);
+    for (uint8_t i = 0; i < 8; ++i) {
+        writeData(str[i]);
+    }
+    digitalWrite(_cs, HIGH);
+    show();
+}
+
 void VFD::setCustomChar(uint8_t address, uint8_t* custom_char) {
     digitalWrite(_cs, LOW);
     writeData(0x40 | (address & 0x07));
@@ -140,6 +150,62 @@ void VFD::displayDateAndTime(time_t epoch_time) {
     }
     setCustomChar(7, current_char);
 
+    writeStr(print_str);
+}
+
+void VFD::loadCustomDigits(CUSTOM_FONT::FONT_TYPE font_type) {
+    for (uint8_t i = 0; i < 10; ++i) {
+        setCustomChar(i, CUSTOM_FONT::getDigit(i, font_type));
+    }
+}
+
+void VFD::plot(uint8_t data_len, uint8_t *data, char label) {
+    uint8_t print_str[] = {0, 1, 2, 3, 4, 5, 6, 7};
+    
+    uint8_t plot[40];
+
+    uint8_t min_value = 0xFF;
+    uint8_t max_value = 0x0;
+    
+    for (uint8_t i = 0; i < 40; ++i) {
+        plot[i] = 0;
+    }
+
+    for (uint8_t i = 0; i < data_len; ++i) {
+        max_value = max(max_value, data[i]);
+        min_value = min(min_value, data[i]);
+    }
+
+    for (uint8_t i = 0; i < data_len; ++i) {
+        uint8_t value = 3;
+        if (max_value != min_value) {
+            value = 6 * (data[i] - min_value) / (max_value - min_value);
+        }
+        plot[40 - data_len + i] |= 0x1 << (6 - value);
+    }
+    if (label) {
+        plot[0] &= 0b11110000;
+        plot[1] &= 0b11110000;
+        plot[2] &= 0b11110000;
+        plot[3] &= 0b11110000;
+    }
+    switch (label) {
+    case 'T':
+        plot[0] |= 0b001;
+        plot[1] |= 0b111;
+        plot[2] |= 0b001;
+        break;
+    case 'H':
+        plot[0] |= 0b111;
+        plot[1] |= 0b010;
+        plot[2] |= 0b111;
+        break;
+    }
+
+    for (uint8_t i = 0; i < 8; ++i) {
+        setCustomChar(i, &plot[5*i]);
+    }
+    
     writeStr(print_str);
 }
 

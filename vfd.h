@@ -11,10 +11,13 @@ public:
 
     void setBrightness(uint8_t brightness);
     void writeStr(uint8_t* str);
+    void writeStr(const char* str);
     void setCustomChar(uint8_t address, uint8_t* custom_char);
     void setDigits(uint8_t digits);
     void displayTime(uint8_t hours, uint8_t minutes, uint8_t seconds);
     void displayDateAndTime(time_t epoch_time);
+    void loadCustomDigits(CUSTOM_FONT::FONT_TYPE font_type);
+    void plot(uint8_t data_len, uint8_t *data, char label);
 
 private:
     uint8_t _din;
